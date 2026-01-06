@@ -1,0 +1,17 @@
+# --- MEERKAT LOG PARSING CHEAT SHEET ---
+
+# 1. Summary of all alerts by signature and category
+cat meerkat-alerts.json | jq -r '.[] | [.alert.signature, .alert.category] | @tsv' | sort | uniq -c | sort -nr
+
+# 2. Extracting the "Who, When, and What"
+# Includes Timestamp, Source, Destination, Signature, and Category
+cat meerkat-alerts.json | jq -r '.[] | [.ts, .src_ip, .dest_ip, .alert.signature, .alert.category] | @tsv' | sort -u
+
+# 3. Filtering for high-severity alerts only
+cat meerkat-alerts.json | jq '.[] | select(.alert.severity == 1)'
+
+# 4. Searching for the specific Bonitasoft CVE (CVE-2022-25237)
+cat meerkat-alerts.json | jq '.[] | select(.alert.metadata.cve[]? == "CVE_2022_25237")'
+
+# 5. Identifying the Attacker's Tooling (User-Agents)
+cat meerkat-alerts.json | jq -r '.[] | select(.alert.signature | contains("User-Agent")) | [.src_ip, .alert.signature] | @tsv' | sort -u
