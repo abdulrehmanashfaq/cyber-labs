@@ -36,4 +36,37 @@ Q5: Research the second hash in question 3 and list the four malicious dropped f
 searchhost.exe,syshelpers.exe,nat.vbs,runsys.vbs
 ```
 For this we will search for the hash of second executed parent and will go to relation tab and first 4 files will be answer in the dropped file section.
-![image1](images/pic5.png) 
+![image1](images/pic5.png)
+
+Q6: Analyse the files related to the flagged IP. What is the malware family that links these files?
+```bash
+asyncrat
+```
+We search for the given ip in virus total and go to the relations and than in the communicating files and click on one of these files. Now we will look at the threat family of the file.
+![image1](images/pic6.png)
+Q7:What is the title of the original report where these flagged indicators are mentioned? Use Google to find the report.
+```bash
+From Trust to Threat: Hijacked Discord Invites Used for Multi-Stage Malware Delivery
+```
+We went to community tab and there was a comment by a person with a reference to a page that was a report that was our ansswer
+![image1](images/pic7.png)
+After visiting the page.
+![image1](images/pic8.png)
+Q8: Which tool did the attackers use to steal cookies from the Google Chrome browser?
+```bash
+ChromeKatz
+```
+In the key take way part of the report the tool is mentioned
+![image1](images/pic9.png)
+Q9:Which phishing technique did the attackers use? Use the report to answer the question.
+```bash
+ClickFix
+```
+It is also mentioned in Key Take away part
+![image1](images/pic10.png)
+
+Q10:What is the name of the platform that was used to redirect a user to malicious servers?
+```bash
+Discord
+```
+Read the report and you'll understand that its discord.
