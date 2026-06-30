@@ -64,3 +64,27 @@ Q5:What was the date that this binary was executed by the infected host? format 
 ```
 In the Same log we can see the date 
 ![image1](images/pic5.png)
+Q6:Which third-party site was accessed to download the malicious payload?
+```bash
+controlc.com
+```
+Again in the same log certutil is requsting controlc.com that is used to generate a url of text.
+![image1](images/pic6.png)
+![image1](images/pic7.png)
+Q7:What is the name of the file that was saved on the host machine from the C2 server during the post-exploitation phase?
+```bash
+benign.exe
+```
+In that same log.
+![image1](images/pic8.png)
+
+Q8:The suspicious file downloaded from the C2 server contained malicious content with the pattern THM{..........}; what is that pattern?
+```bash
+THM{KJ&*H^B0}
+```
+Ok for this we need to copy the url that certuil was accessing.
+![image1](images/pic9.png)
+Q9:What is the URL that the infected host connected to?
+```bash
+https://controlc.com/e4d11035
+```
