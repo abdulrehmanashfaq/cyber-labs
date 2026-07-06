@@ -467,7 +467,7 @@ Significant Data Sources:
 * Packet Catpure
 * Sysmon
 ### Answer the questions below
-After discovering the privileges of the current user, the attacker then downloaded another binary to be used for privilege escalation. What is the name and the SHA256 hash of the binary?
+Q1:After discovering the privileges of the current user, the attacker then downloaded another binary to be used for privilege escalation. What is the name and the SHA256 hash of the binary?
 
 Format: binary name,SHA256 hash
 ```bash
@@ -477,3 +477,78 @@ For this i went ot wireshark and filter for domain that drops file and there was
 ![image29](images/pic38.png)
 SO i search for spf in the timeline explorer 
 ![image29](images/pic39.png)
+
+Q2:The tool exploits a specific privilege owned by the user. What is the name of the privilege?
+```bash
+printspoofer
+```
+![image29](images/pic40.png)
+Q3:The tool exploits a specific privilege owned by the user. What is the name of the privilege?
+```bash
+SeImpersonatePrivilege
+```
+![image29](images/pic41.png)
+Q4:Then, the attacker executed the tool with another binary to establish a c2 connection. What is the name of the binary?
+```bash
+final.exe
+```
+![image29](images/42.png)
+Q5:The binary connects to a different port from the first c2 connection. What is the port used?
+```bash
+8080
+```
+we filter logs for final.exe and open the log with network connection
+![image29](images/pic43.png)
+and now open it 
+![image29](images/pic44.png)
+## Task9) Actions on Objective -Fully-Owned Machine
+### Fully-Owned Machine
+Now, the attacker has gained administrative privileges inside the machine. Find all presistance techniques used by the attacker.
+In addition, the unusual executions are related to the malicious C2 binary used during privilege escalation.
+### Investigation Guide
+Now, we can rely on our cheatsheet to investigate events after a successful privilege escalation:
+* Useful Brim filter to get all HTTP requests related to the malicious C2 traffic : _path=="http" "replace domain" id.resp_p==replace port | cut ts, host, id.resp_p, uri | sort ts
+* The attacker gained SYSTEM privileges; now, the user context for each malicious execution blends with NT Authority\System.
+* All child events of the new malicious binary used for C2 are worth checking.
+### Significant Data Sources:
+* Packet Capture
+* Sysmon
+* Windows Event logs
+### Answer the questions below
+Q1:Upon achieving SYSTEM access, the attacker then created two users. What are the account names?
+
+Format: Answer in alphabetical order - comma delimited
+```bash
+shion,shuna
+```
+I loaded window logs in timeline explorer and filter for event id 4720 and we got our created users.
+![image29](images/pic45.png)
+Q2:Prior to the successful creation of the accounts, the attacker executed commands that failed in the creation attempt. What is the missing option that made the attempt fail?
+```bash
+/add
+```
+Again i opened the sysmon events in the timeline explorer and filter for the one of the user and there was only one flag was using 
+![image29](images/46.png)
+Q3:Based on windows event logs, the accounts were successfully created. What is the event ID that indicates the account creation activity?
+```bash
+4720
+```
+We can actully google for this
+Q4:The attacker added one of the accounts in the local administrator's group. What is the command used by the attacker?
+```bash
+net localgroup administrators /add shion
+```
+I first filter for event id 4732 there was 3 groups in which users was added i than filter for administrators group in the sysmon logs and got the command.
+![image29](images/pic47.png)
+Q5:Based on windows event logs, the account was successfully added to a sensitive group. What is the event ID that indicates the addition to a sensitive local group?
+```bash
+4732
+```
+We can google it
+Q6:After the account creation, the attacker executed a technique to establish persistent administrative access. What is the command executed by the attacker to achieve this?
+
+Format: Remove the double quotes from the log
+```bash
+C:\Windows\system32\sc.exe \\TEMPEST create TempestUpdate2 binpath= C:\ProgramData\final.exe start= auto
+```
+![image29](images/pic48.png)
