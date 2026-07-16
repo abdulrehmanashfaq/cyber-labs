@@ -69,3 +69,24 @@ Q7:PowerShell logging is enabled on this device. How many events were logged for
 ```
 There are two commonly used event id for powershell loging 4104,4103.There was no hit for 4103 but for 4104 there was
 ![pic1](images/pic10.png)
+Q8:An encoded Powershell script from the infected host initiated a web request. What is the full URL?
+```bash
+hxxp[://]10[.]10[.]10[.]5/news[.]php
+```
+For this first we queried the powershell commands that are being executed.
+index=main EventID=4103 Hostname="James.browne"
+| rex field=_raw "-enc\s+(?<encoded_command>[A-Za-z0-9+/=]+)"
+| where isnotnull(encoded_command)
+| dedup encoded_command
+| table _time Hostname encoded_command
+What it do is it takes all the encoded parts of the powershell command and filter out the repiting one 
+There was only one powershell script that was being executing many times.
+![pic1](images/pic11.png)
+Copy that command and decode it on cyberchef decode it from base64 UTF16E
+![pic1](images/pic12.png)
+Now we need to look closely in the decoded command
+![pic1](images/pic13.png)
+It created web request object and it is using a encoded string and concatinating it with "news.php"
+So we dedcode that encoded string 
+![pic1](images/pic14.png)
+So we got our request.Remeber to defang it.

